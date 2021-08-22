@@ -60,6 +60,7 @@ FieldError = __decorate([
 ], FieldError);
 let UserResolver = class UserResolver {
     async me({ em, req }) {
+        console.log(req.session);
         if (!req.session.userId) {
             return null;
         }
