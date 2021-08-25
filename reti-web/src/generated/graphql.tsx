@@ -113,6 +113,11 @@ export type UsernamePasswordInput = {
 
 export type RegularUserFragment = { __typename?: 'User', id: string, email: string };
 
+export type ApartmentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ApartmentsQuery = { __typename?: 'Query', apartments: Array<{ __typename?: 'Apartment', id: string, name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number }> };
+
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
@@ -144,6 +149,23 @@ export const RegularUserFragmentDoc = gql`
   email
 }
     `;
+export const ApartmentsDocument = gql`
+    query Apartments {
+  apartments {
+    id
+    name
+    description
+    floor
+    areaSize
+    price
+    numberOfRooms
+  }
+}
+    `;
+
+export function useApartmentsQuery(options: Omit<Urql.UseQueryArgs<ApartmentsQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<ApartmentsQuery>({ query: ApartmentsDocument, ...options });
+};
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
   login(options: $options) {

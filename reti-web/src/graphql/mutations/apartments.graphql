@@ -1,0 +1,11 @@
+query Apartments {
+    apartments {
+        id
+        name
+        description
+        floor
+        areaSize
+        price
+        numberOfRooms
+    }
+}
