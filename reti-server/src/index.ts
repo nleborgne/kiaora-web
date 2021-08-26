@@ -3,7 +3,7 @@ import express from "express";
 import { MikroORM } from "@mikro-orm/core";
 import { buildSchema } from "type-graphql";
 import { ApolloServer } from "apollo-server-express";
-import { __prod__ } from "./constants";
+import { COOKIE_NAME, __prod__ } from "./constants";
 import mikroOrmConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { ApartmentResolver } from "./resolvers/apartment";
@@ -20,17 +20,19 @@ const main = async () => {
 
     const app = express();
 
-    // Add headers before the routes are defined
     app.use(
-        cors({ origin: "https://studio.apollographql.com", credentials: true })
+        cors({
+            origin: "http://localhost:3000",
+            credentials: true,
+        })
     );
 
     let RedisStore = connectRedis(session);
-    let redisClient = redis.createClient();
+    let redisClient = redis.createClient(``);
 
     app.use(
         session({
-            name: "qid",
+            name: COOKIE_NAME,
             store: new RedisStore({
                 client: redisClient,
                 disableTouch: true,
@@ -57,7 +59,10 @@ const main = async () => {
 
     await apolloServer.start();
 
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({
+        app,
+        cors: false,
+    });
 
     app.get("/", (_, res) => {
         res.send("hello");
@@ -71,5 +76,3 @@ const main = async () => {
 main().catch((error) => {
     console.log(error);
 });
-
-console.log("hello world");

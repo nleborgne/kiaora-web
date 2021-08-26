@@ -4,21 +4,15 @@ import {
     Arg,
     Ctx,
     Field,
-    InputType,
     Mutation,
     ObjectType,
     Query,
     Resolver,
 } from "type-graphql";
 import argon2 from "argon2";
-
-@InputType()
-class UsernamePasswordInput {
-    @Field()
-    email: string;
-    @Field()
-    password: string;
-}
+import { COOKIE_NAME } from "../constants";
+import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import { validateRegister } from "../utils/validateRegister";
 
 @ObjectType()
 class UserResponse {
@@ -42,7 +36,6 @@ class FieldError {
 export class UserResolver {
     @Query(() => User, { nullable: true })
     async me(@Ctx() { em, req }: MyContext) {
-        console.log(req.session);
         // you are not logged in
         if (!req.session.userId) {
             return null;
@@ -54,27 +47,11 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async register(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() { em }: MyContext
+        @Ctx() { em, req }: MyContext
     ): Promise<UserResponse> {
-        if (options.email.length <= 2) {
-            return {
-                errors: [
-                    {
-                        field: "email",
-                        message: "length must be greater than 2",
-                    },
-                ],
-            };
-        }
-        if (options.password.length <= 3) {
-            return {
-                errors: [
-                    {
-                        field: "password",
-                        message: "length must be greater than 3",
-                    },
-                ],
-            };
+        const errors = validateRegister(options);
+        if (errors) {
+            return { errors };
         }
         const hashedPassword = await argon2.hash(options.password);
         const user = em.create(User, {
@@ -84,7 +61,8 @@ export class UserResolver {
         try {
             await em.persistAndFlush(user);
         } catch (err) {
-            if (err.code === "23505") {
+            console.log(err);
+            if (err.detail.includes("already exists")) {
                 // duplicate email error
                 return {
                     errors: [
@@ -93,6 +71,9 @@ export class UserResolver {
                 };
             }
         }
+
+        req.session.userId = user.id;
+
         return { user };
     }
 
@@ -119,5 +100,20 @@ export class UserResolver {
         req.session.userId = user.id;
 
         return { user };
+    }
+
+    @Mutation(() => Boolean)
+    logout(@Ctx() { req, res }: MyContext) {
+        return new Promise((resolve) =>
+            req.session.destroy((err) => {
+                res.clearCookie(COOKIE_NAME);
+                if (err) {
+                    console.log(err);
+                    resolve(false);
+                    return;
+                }
+                resolve(true);
+            })
+        );
     }
 }
