@@ -13,6 +13,7 @@ import argon2 from "argon2";
 import { COOKIE_NAME } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
+import { getConnection } from "typeorm";
 
 @ObjectType()
 class UserResponse {
@@ -35,31 +36,38 @@ class FieldError {
 @Resolver()
 export class UserResolver {
     @Query(() => User, { nullable: true })
-    async me(@Ctx() { em, req }: MyContext) {
+    me(@Ctx() { req }: MyContext) {
         // you are not logged in
         if (!req.session.userId) {
             return null;
         }
 
-        const user = await em.findOne(User, { id: req.session.userId });
-        return user;
+        return User.findOne(req.session.userId);
     }
     @Mutation(() => UserResponse)
     async register(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
         const errors = validateRegister(options);
         if (errors) {
             return { errors };
         }
         const hashedPassword = await argon2.hash(options.password);
-        const user = em.create(User, {
-            email: options.email,
-            password: hashedPassword,
-        });
+        let user;
         try {
-            await em.persistAndFlush(user);
+            const result = await getConnection()
+                .createQueryBuilder()
+                .insert()
+                .into(User)
+                .values({
+                    email: options.email,
+                    password: hashedPassword,
+                })
+                .returning("*")
+                .execute();
+            console.log("result", result);
+            user = result.raw[0];
         } catch (err) {
             console.log(err);
             if (err.detail.includes("already exists")) {
@@ -80,9 +88,9 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async login(
         @Arg("options") options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        const user = await em.findOne(User, { email: options.email });
+        const user = await User.findOne({ where: { email: options.email } });
         if (!user) {
             return {
                 errors: [

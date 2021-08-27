@@ -1,45 +1,61 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "type-graphql";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    ManyToOne,
+} from "typeorm";
 import { v4 } from "uuid";
+import { User } from "./User";
 
 @ObjectType()
 @Entity()
-export class Apartment {
+export class Apartment extends BaseEntity {
     @Field(() => String)
-    @PrimaryKey()
+    @PrimaryGeneratedColumn()
     id: string = v4();
 
     @Field(() => String)
-    @Property({ type: "date" })
-    createdAt: Date = new Date();
-
-    @Field(() => String)
-    @Property({ type: "date", onUpdate: () => new Date() })
-    updatedAt: Date = new Date();
-
-    @Field(() => String)
-    @Property({ type: "text" })
+    @Column()
     name!: string;
 
     @Field(() => String)
-    @Property({ type: "text" })
+    @Column()
     description: string;
 
     @Field(() => Number)
-    @Property({ type: "number" })
+    @Column({ type: "int" })
     floor: number;
 
     @Field(() => Number)
-    @Property({ type: "number" })
+    @Column({ type: "int" })
     areaSize: number;
 
     @Field(() => Number)
-    @Property({ type: "number" })
+    @Column({ type: "float" })
     price: number;
 
     @Field(() => Number)
-    @Property({ type: "number" })
+    @Column({ type: "int" })
     numberOfRooms: number;
+
+    @Field()
+    @Column()
+    realtorId: string;
+
+    @ManyToOne(() => User, (user) => user.apartments)
+    realtor: User;
+
+    @Field(() => String)
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @Field(() => String)
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
 
 /*

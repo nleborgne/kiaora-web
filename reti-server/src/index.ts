@@ -1,22 +1,34 @@
 import "reflect-metadata";
 import express from "express";
-import { MikroORM } from "@mikro-orm/core";
 import { buildSchema } from "type-graphql";
 import { ApolloServer } from "apollo-server-express";
 import { COOKIE_NAME, __prod__ } from "./constants";
-import mikroOrmConfig from "./mikro-orm.config";
 import { HelloResolver } from "./resolvers/hello";
 import { ApartmentResolver } from "./resolvers/apartment";
 import { UserResolver } from "./resolvers/user";
-import redis from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { MyContext } from "./types";
 import cors from "cors";
+import { createConnection } from "typeorm";
+import { Apartment } from "./entities/Apartment";
+import { User } from "./entities/User";
 
 const main = async () => {
-    const orm = await MikroORM.init(mikroOrmConfig);
-    await orm.getMigrator().up();
+    await createConnection({
+        type: "postgres",
+        database: "reti",
+        username: "postgres",
+        password: "postgres",
+        logging: true,
+        synchronize: true,
+        entities: [User, Apartment],
+        migrations: ["dist/migrations/*.js"],
+        cli: {
+            migrationsDir: "src/migrations",
+        },
+    });
 
     const app = express();
 
@@ -28,13 +40,13 @@ const main = async () => {
     );
 
     let RedisStore = connectRedis(session);
-    let redisClient = redis.createClient(``);
+    let redis = new Redis();
 
     app.use(
         session({
             name: COOKIE_NAME,
             store: new RedisStore({
-                client: redisClient,
+                client: redis,
                 disableTouch: true,
             }),
             cookie: {
@@ -54,7 +66,7 @@ const main = async () => {
             resolvers: [HelloResolver, ApartmentResolver, UserResolver],
             validate: false,
         }),
-        context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
+        context: ({ req, res }): MyContext => ({ req, res, redis }),
     });
 
     await apolloServer.start();
