@@ -17,8 +17,18 @@ export type Scalars = {
 export type Apartment = {
   __typename?: 'Apartment';
   id: Scalars['String'];
+  name: Scalars['String'];
+  description: Scalars['String'];
+  floor: Scalars['Float'];
+  areaSize: Scalars['Float'];
+  price: Scalars['Float'];
+  numberOfRooms: Scalars['Float'];
+  realtorId: Scalars['String'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
+};
+
+export type ApartmentInput = {
   name: Scalars['String'];
   description: Scalars['String'];
   floor: Scalars['Float'];
@@ -45,22 +55,12 @@ export type Mutation = {
 
 
 export type MutationCreateApartmentArgs = {
-  numberOfRooms: Scalars['Float'];
-  price: Scalars['Float'];
-  areaSize: Scalars['Float'];
-  floor: Scalars['Float'];
-  description: Scalars['String'];
-  name: Scalars['String'];
+  input: ApartmentInput;
 };
 
 
 export type MutationUpdateApartmentArgs = {
-  numberOfRooms: Scalars['Float'];
-  price: Scalars['Float'];
-  areaSize: Scalars['Float'];
-  floor: Scalars['Float'];
-  description: Scalars['String'];
-  name: Scalars['String'];
+  input: ApartmentInput;
   id: Scalars['String'];
 };
 
@@ -95,9 +95,9 @@ export type QueryApartmentArgs = {
 export type User = {
   __typename?: 'User';
   id: Scalars['String'];
+  email: Scalars['String'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
-  email: Scalars['String'];
 };
 
 export type UserResponse = {
@@ -111,12 +111,23 @@ export type UsernamePasswordInput = {
   password: Scalars['String'];
 };
 
+export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
+
 export type RegularUserFragment = { __typename?: 'User', id: string, email: string };
+
+export type RegularUserReponseFragment = { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string }> };
 
 export type ApartmentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ApartmentsQuery = { __typename?: 'Query', apartments: Array<{ __typename?: 'Apartment', id: string, name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number }> };
+
+export type CreateApartmentMutationVariables = Exact<{
+  input: ApartmentInput;
+}>;
+
+
+export type CreateApartmentMutation = { __typename?: 'Mutation', createApartment: { __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, numberOfRooms: number, price: number } };
 
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
@@ -143,12 +154,29 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string }> };
 
+export const RegularErrorFragmentDoc = gql`
+    fragment RegularError on FieldError {
+  field
+  message
+}
+    `;
 export const RegularUserFragmentDoc = gql`
     fragment RegularUser on User {
   id
   email
 }
     `;
+export const RegularUserReponseFragmentDoc = gql`
+    fragment RegularUserReponse on UserResponse {
+  errors {
+    ...RegularError
+  }
+  user {
+    ...RegularUser
+  }
+}
+    ${RegularErrorFragmentDoc}
+${RegularUserFragmentDoc}`;
 export const ApartmentsDocument = gql`
     query Apartments {
   apartments {
@@ -166,19 +194,32 @@ export const ApartmentsDocument = gql`
 export function useApartmentsQuery(options: Omit<Urql.UseQueryArgs<ApartmentsQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<ApartmentsQuery>({ query: ApartmentsDocument, ...options });
 };
+export const CreateApartmentDocument = gql`
+    mutation createApartment($input: ApartmentInput!) {
+  createApartment(input: $input) {
+    id
+    createdAt
+    updatedAt
+    name
+    description
+    floor
+    areaSize
+    numberOfRooms
+    price
+  }
+}
+    `;
+
+export function useCreateApartmentMutation() {
+  return Urql.useMutation<CreateApartmentMutation, CreateApartmentMutationVariables>(CreateApartmentDocument);
+};
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
   login(options: $options) {
-    errors {
-      field
-      message
-    }
-    user {
-      ...RegularUser
-    }
+    ...RegularUserReponse
   }
 }
-    ${RegularUserFragmentDoc}`;
+    ${RegularUserReponseFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -195,16 +236,10 @@ export function useLogoutMutation() {
 export const RegisterDocument = gql`
     mutation Register($email: String!, $password: String!) {
   register(options: {email: $email, password: $password}) {
-    errors {
-      field
-      message
-    }
-    user {
-      ...RegularUser
-    }
+    ...RegularUserReponse
   }
 }
-    ${RegularUserFragmentDoc}`;
+    ${RegularUserReponseFragmentDoc}`;
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);

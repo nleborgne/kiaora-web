@@ -1,0 +1,13 @@
+mutation createApartment($input: ApartmentInput!) {
+    createApartment(input: $input) {
+        id
+        createdAt
+        updatedAt
+        name
+        description
+        floor
+        areaSize
+        numberOfRooms
+        price
+    }
+}

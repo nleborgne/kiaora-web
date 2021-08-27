@@ -1,14 +1,14 @@
-import { NavBar } from "../components/NavBar";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { useApartmentsQuery } from "../generated/graphql";
-
+import React from "react";
+import { Layout } from "../components/Layout";
+import NextLink from "next/link";
+import { Button } from "@chakra-ui/react";
 const Index = () => {
     const [{ data }] = useApartmentsQuery();
     return (
-        <>
-            <NavBar />
-            <div>hello world</div>
+        <Layout variant="regular">
             {!data ? (
                 <div>loading...</div>
             ) : (
@@ -16,7 +16,10 @@ const Index = () => {
                     <div key={apartment.id}>{apartment.name}</div>
                 ))
             )}
-        </>
+            <NextLink href="create-apartment">
+                <Button colorScheme="teal">+&nbsp;Add apartment</Button>
+            </NextLink>
+        </Layout>
     );
 };
 
