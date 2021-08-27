@@ -1,4 +1,4 @@
-import { isAuth } from "src/middleware/isAuth";
+import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "src/types";
 import {
     Arg,
@@ -57,7 +57,7 @@ export class ApartmentResolver {
     @Mutation(() => Apartment, { nullable: true })
     @UseMiddleware(isAuth)
     async updateApartment(
-        @Arg("id") id: string,
+        @Arg("id") id: number,
         @Arg("input") input: ApartmentInput
     ): Promise<Apartment | null> {
         const apartment = await Apartment.findOne(id);

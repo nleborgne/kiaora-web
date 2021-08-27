@@ -8,7 +8,6 @@ import {
     BaseEntity,
     ManyToOne,
 } from "typeorm";
-import { v4 } from "uuid";
 import { User } from "./User";
 
 @ObjectType()
@@ -16,7 +15,7 @@ import { User } from "./User";
 export class Apartment extends BaseEntity {
     @Field(() => String)
     @PrimaryGeneratedColumn()
-    id: string = v4();
+    id: number;
 
     @Field(() => String)
     @Column()
