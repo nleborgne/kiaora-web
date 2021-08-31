@@ -1,11 +1,28 @@
-query Apartments {
-    apartments {
-        id
-        name
-        description
-        floor
-        areaSize
-        price
-        numberOfRooms
+query Apartments($limit: Int!, $cursor: String) {
+    apartments(cursor: $cursor, limit: $limit) {
+        hasMore
+        apartments {
+            id
+            createdAt
+            updatedAt
+            name
+            description
+            floor
+            areaSize
+            price
+            numberOfRooms
+            latitude
+            longitude
+            realtorId
+            address
+            isRented
+            realtor {
+                id
+                email
+                createdAt
+                updatedAt
+                role
+            }
+        }
     }
 }

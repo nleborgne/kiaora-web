@@ -1,8 +1,9 @@
-import { Box, Button, Flex, Link } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Link } from "@chakra-ui/react";
 import React from "react";
 import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
+import { Role } from "../utils/roles";
 
 interface NavBarProps {}
 
@@ -28,6 +29,15 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     } else {
         body = (
             <Flex>
+                <Box float="left" pos="fixed" top={2} left={2}>
+                    <HStack>
+                        {[Role.REALTOR, Role.ADMIN].includes(data.me.role as Role) && (
+                            <Link href="create-apartment">
+                                <Button colorScheme="teal">+&nbsp;Add apartment</Button>
+                            </Link>
+                        )}
+                    </HStack>
+                </Box>
                 <Box mr={2}>{data.me.email}</Box>
                 <Button
                     variant="link"

@@ -23,7 +23,12 @@ export type Apartment = {
   areaSize: Scalars['Float'];
   price: Scalars['Float'];
   numberOfRooms: Scalars['Float'];
+  latitude: Scalars['Float'];
+  longitude: Scalars['Float'];
+  address: Scalars['String'];
+  isRented: Scalars['Boolean'];
   realtorId: Scalars['String'];
+  realtor: User;
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
 };
@@ -35,6 +40,7 @@ export type ApartmentInput = {
   areaSize: Scalars['Float'];
   price: Scalars['Float'];
   numberOfRooms: Scalars['Float'];
+  address: Scalars['String'];
 };
 
 export type FieldError = {
@@ -61,7 +67,7 @@ export type MutationCreateApartmentArgs = {
 
 export type MutationUpdateApartmentArgs = {
   input: ApartmentInput;
-  id: Scalars['String'];
+  id: Scalars['Float'];
 };
 
 
@@ -79,12 +85,24 @@ export type MutationLoginArgs = {
   options: UsernamePasswordInput;
 };
 
+export type PaginatedApartments = {
+  __typename?: 'PaginatedApartments';
+  apartments: Array<Apartment>;
+  hasMore: Scalars['Boolean'];
+};
+
 export type Query = {
   __typename?: 'Query';
   hello: Scalars['String'];
-  apartments: Array<Apartment>;
+  apartments: PaginatedApartments;
   apartment?: Maybe<Apartment>;
   me?: Maybe<User>;
+};
+
+
+export type QueryApartmentsArgs = {
+  cursor?: Maybe<Scalars['String']>;
+  limit: Scalars['Int'];
 };
 
 
@@ -96,6 +114,7 @@ export type User = {
   __typename?: 'User';
   id: Scalars['String'];
   email: Scalars['String'];
+  role: Scalars['String'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
 };
@@ -113,28 +132,31 @@ export type UsernamePasswordInput = {
 
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
 
-export type RegularUserFragment = { __typename?: 'User', id: string, email: string };
+export type RegularUserFragment = { __typename?: 'User', id: string, email: string, role: string };
 
-export type RegularUserReponseFragment = { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string }> };
+export type RegularUserReponseFragment = { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
 
-export type ApartmentsQueryVariables = Exact<{ [key: string]: never; }>;
+export type ApartmentsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  cursor?: Maybe<Scalars['String']>;
+}>;
 
 
-export type ApartmentsQuery = { __typename?: 'Query', apartments: Array<{ __typename?: 'Apartment', id: string, name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number }> };
+export type ApartmentsQuery = { __typename?: 'Query', apartments: { __typename?: 'PaginatedApartments', hasMore: boolean, apartments: Array<{ __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number, latitude: number, longitude: number, realtorId: string, address: string, isRented: boolean, realtor: { __typename?: 'User', id: string, email: string, createdAt: string, updatedAt: string, role: string } }> } };
 
 export type CreateApartmentMutationVariables = Exact<{
   input: ApartmentInput;
 }>;
 
 
-export type CreateApartmentMutation = { __typename?: 'Mutation', createApartment: { __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, numberOfRooms: number, price: number } };
+export type CreateApartmentMutation = { __typename?: 'Mutation', createApartment: { __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, numberOfRooms: number, price: number, latitude: number, longitude: number, address: string } };
 
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string }> } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -147,12 +169,12 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string }> } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string }> };
+export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
 
 export const RegularErrorFragmentDoc = gql`
     fragment RegularError on FieldError {
@@ -164,6 +186,7 @@ export const RegularUserFragmentDoc = gql`
     fragment RegularUser on User {
   id
   email
+  role
 }
     `;
 export const RegularUserReponseFragmentDoc = gql`
@@ -178,15 +201,32 @@ export const RegularUserReponseFragmentDoc = gql`
     ${RegularErrorFragmentDoc}
 ${RegularUserFragmentDoc}`;
 export const ApartmentsDocument = gql`
-    query Apartments {
-  apartments {
-    id
-    name
-    description
-    floor
-    areaSize
-    price
-    numberOfRooms
+    query Apartments($limit: Int!, $cursor: String) {
+  apartments(cursor: $cursor, limit: $limit) {
+    hasMore
+    apartments {
+      id
+      createdAt
+      updatedAt
+      name
+      description
+      floor
+      areaSize
+      price
+      numberOfRooms
+      latitude
+      longitude
+      realtorId
+      address
+      isRented
+      realtor {
+        id
+        email
+        createdAt
+        updatedAt
+        role
+      }
+    }
   }
 }
     `;
@@ -206,6 +246,9 @@ export const CreateApartmentDocument = gql`
     areaSize
     numberOfRooms
     price
+    latitude
+    longitude
+    address
   }
 }
     `;

@@ -6,6 +6,8 @@ export const useIsAuth = () => {
     const router = useRouter();
     const [{ data, fetching }] = useMeQuery();
     useEffect(() => {
-        !fetching && !data?.me && router.replace("/login");
+        !fetching &&
+            !data?.me &&
+            router.replace("/login?next=" + router.pathname);
     }, [data, router]);
 };

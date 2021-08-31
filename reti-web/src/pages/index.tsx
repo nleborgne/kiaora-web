@@ -1,24 +1,57 @@
+import React from "react";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { useApartmentsQuery } from "../generated/graphql";
-import React from "react";
 import { Layout } from "../components/Layout";
-import NextLink from "next/link";
-import { Button } from "@chakra-ui/react";
+import { Box, HStack, Stack } from "@chakra-ui/react";
+import { LeftPanel } from "../components/LeftPanel";
+import { MiddlePanel } from "../components/MiddlePanel";
+import { RightPanel } from "../components/RightPanel";
+
 const Index = () => {
-    const [{ data }] = useApartmentsQuery();
+    const [variables, setVariables] = React.useState({
+        limit: 15,
+        cursor: null as null | string,
+    });
+    const [{ data, fetching }] = useApartmentsQuery({
+        variables,
+    });
+
+    if (!fetching && !data) {
+        return <div>No apartments added</div>;
+    }
+
     return (
-        <Layout variant="regular">
-            {!data ? (
+        <Layout variant="large">
+            {!data && fetching ? (
                 <div>loading...</div>
             ) : (
-                data.apartments.map((apartment) => (
-                    <div key={apartment.id}>{apartment.name}</div>
-                ))
+                <>
+                    <HStack>
+                        <Stack w="20vw" h="90vh">
+                            <LeftPanel
+                                aptData={data!}
+                                fetching={fetching}
+                                onClick={() => {
+                                    setVariables({
+                                        limit: variables.limit,
+                                        cursor: data!.apartments.apartments[
+                                            data!.apartments.apartments.length -
+                                                1
+                                        ].createdAt,
+                                    });
+                                }}
+                            />
+                        </Stack>
+                        <Box w="60vw" h="90vh">
+                            <MiddlePanel data={data!} />
+                        </Box>
+                        <Box w="20vw" h="90vh">
+                            <RightPanel />
+                        </Box>
+                    </HStack>
+                </>
             )}
-            <NextLink href="create-apartment">
-                <Button colorScheme="teal">+&nbsp;Add apartment</Button>
-            </NextLink>
         </Layout>
     );
 };

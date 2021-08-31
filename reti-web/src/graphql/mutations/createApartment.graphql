@@ -9,5 +9,8 @@ mutation createApartment($input: ApartmentInput!) {
         areaSize
         numberOfRooms
         price
+        latitude
+        longitude
+        address
     }
 }

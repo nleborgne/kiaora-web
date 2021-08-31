@@ -1,5 +1,5 @@
-import { dedupExchange, fetchExchange } from "urql";
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { dedupExchange, fetchExchange, stringifyVariables } from "urql";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import {
     LogoutMutation,
     MeQuery,
@@ -25,6 +25,43 @@ export const errorExchange: Exchange =
         );
     };
 
+export const cursorPagination = (): Resolver => {
+    return (_parent, fieldArgs, cache, info) => {
+        const { parentKey: entityKey, fieldName } = info;
+        const allFields = cache.inspectFields(entityKey);
+        const fieldInfos = allFields.filter(
+            (info) => info.fieldName === fieldName
+        );
+        const size = fieldInfos.length;
+        if (size === 0) {
+            return undefined;
+        }
+
+        const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+        const typename = cache.resolve(
+            cache.resolve(entityKey, fieldKey) as string,
+            "__typename"
+        ) as string;
+        const isItInTheCache = cache.resolve(
+            cache.resolve(entityKey, fieldKey) as string,
+            "apartments"
+        );
+        info.partial = !isItInTheCache;
+        let hasMore = true;
+        let results: string[] = [];
+        fieldInfos.forEach((fi) => {
+            const key = cache.resolve(entityKey, fi.fieldKey) as string;
+            const data = cache.resolve(key, "apartments") as string[];
+            const _hasMore = cache.resolve(key, "hasMore") as boolean;
+            if (!_hasMore) {
+                hasMore = _hasMore;
+            }
+            results.push(...data);
+        });
+        return { __typename: typename, hasMore, apartments: results };
+    };
+};
+
 export const createUrqlClient = (ssrExchange: any) => ({
     url: "http://localhost:4000/graphql",
     fetchOptions: {
@@ -33,8 +70,21 @@ export const createUrqlClient = (ssrExchange: any) => ({
     exchanges: [
         dedupExchange,
         cacheExchange({
+            keys: {
+                PaginatedApartments: () => null,
+            },
+            resolvers: {
+                Query: {
+                    apartments: cursorPagination(),
+                },
+            },
             updates: {
                 Mutation: {
+                    createApartment: (_result, args, cache, info) => {
+                        cache.invalidate('Query', 'apartments', {
+                            limit: 15,
+                        });
+                    },
                     logout: (_result, args, cache, info) => {
                         // return null from me query
                         betterUpdateQuery<LogoutMutation, MeQuery>(
@@ -45,6 +95,9 @@ export const createUrqlClient = (ssrExchange: any) => ({
                         );
                     },
                     login: (_result, args, cache, info) => {
+                        cache.invalidate('Query', 'apartments', {
+                            limit: 15
+                        });
                         betterUpdateQuery<LoginMutation, MeQuery>(
                             cache,
                             { query: MeDocument },

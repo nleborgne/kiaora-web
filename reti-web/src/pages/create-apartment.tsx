@@ -24,6 +24,7 @@ const CreateApartment: React.FC<{}> = ({}) => {
                     areaSize: 0,
                     price: 0,
                     numberOfRooms: 0,
+                    address: ""
                 }}
                 onSubmit={async (values) => {
                     const { error } = await createApartment({ input: values });
@@ -62,7 +63,7 @@ const CreateApartment: React.FC<{}> = ({}) => {
                         <InputField
                             name="price"
                             placeholder="1500"
-                            label="Price"
+                            label="Price per month"
                             type="number"
                             price
                         />
@@ -74,10 +75,17 @@ const CreateApartment: React.FC<{}> = ({}) => {
                             type="number"
                         />
                         <Box my={4} />
+                        <InputField
+                            name="address"
+                            placeholder="4 Privet Drive Watford"
+                            label="Address"
+                            type="text"
+                        />
+                        <Box my={4} />
                         <Button
-                            type="submit"
-                            colorScheme="teal"
-                            isLoading={isSubmitting}
+                        type="submit"
+                        colorScheme="teal"
+                        isLoading={isSubmitting}
                         >
                             Add apartment
                         </Button>
