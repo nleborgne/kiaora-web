@@ -4,10 +4,12 @@ import {
     Arg,
     Ctx,
     Field,
+    FieldResolver,
     Mutation,
     ObjectType,
     Query,
     Resolver,
+    Root,
 } from "type-graphql";
 import argon2 from "argon2";
 import { COOKIE_NAME } from "../constants";
@@ -33,15 +35,22 @@ class FieldError {
     message: string;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+    @FieldResolver(() => String)
+    email(@Root() user: User, @Ctx() { req }: MyContext) {
+        if (req.session.userId === user.id) {
+            return user.email;
+        }
+        return "";
+    }
+
     @Query(() => User, { nullable: true })
-    me(@Ctx() { req }: MyContext) {
+    async me(@Ctx() { req }: MyContext) {
         // you are not logged in
         if (!req.session.userId) {
             return null;
         }
-
         return User.findOne(req.session.userId);
     }
     @Mutation(() => UserResponse)
@@ -63,6 +72,7 @@ export class UserResolver {
                 .values({
                     email: options.email,
                     password: hashedPassword,
+                    role: "CLIENT"
                 })
                 .returning("*")
                 .execute();

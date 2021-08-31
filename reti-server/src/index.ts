@@ -14,9 +14,10 @@ import cors from "cors";
 import { createConnection } from "typeorm";
 import { Apartment } from "./entities/Apartment";
 import { User } from "./entities/User";
+import path from "path";
 
 const main = async () => {
-    await createConnection({
+    const conn = await createConnection({
         type: "postgres",
         database: "reti",
         username: "postgres",
@@ -24,11 +25,14 @@ const main = async () => {
         logging: true,
         synchronize: true,
         entities: [User, Apartment],
-        migrations: ["dist/migrations/*.js"],
+        migrations: [path.join(__dirname, "./migrations/*")],
         cli: {
             migrationsDir: "src/migrations",
         },
     });
+    await conn.runMigrations();
+
+    // await Apartment.delete({});
 
     const app = express();
 

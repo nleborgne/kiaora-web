@@ -41,10 +41,27 @@ export class Apartment extends BaseEntity {
     @Column({ type: "int" })
     numberOfRooms: number;
 
+    @Field(() => Number)
+    @Column({ type: "float", nullable: true })
+    latitude: number;
+
+    @Field(() => Number)
+    @Column({ type: "float", nullable: true })
+    longitude: number;
+
+    @Field()
+    @Column()
+    address: string;
+
+    @Field(() => Boolean)
+    @Column()
+    isRented: boolean;
+
     @Field()
     @Column()
     realtorId: string;
 
+    @Field()
     @ManyToOne(() => User, (user) => user.apartments)
     realtor: User;
 
@@ -56,15 +73,3 @@ export class Apartment extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 }
-
-/*
-  name OK,
-  description OK,
-  floor OK,
-  area size,
-  price per month,
-  number of rooms,
-  valid geolocation coordinates,
-  date added,
-  associated realtor
-*/

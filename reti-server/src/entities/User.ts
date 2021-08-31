@@ -28,6 +28,10 @@ export class User extends BaseEntity {
     apartments: Apartment[];
 
     @Field(() => String)
+    @Column()
+    role: string;
+
+    @Field(() => String)
     @CreateDateColumn()
     createdAt: Date;
 
