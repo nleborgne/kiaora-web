@@ -55,6 +55,7 @@ export type Mutation = {
   createApartment: Apartment;
   updateApartment?: Maybe<Apartment>;
   deleteApartment: Scalars['Boolean'];
+  deleteUser: Scalars['Boolean'];
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
@@ -74,6 +75,11 @@ export type MutationUpdateApartmentArgs = {
 
 export type MutationDeleteApartmentArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationDeleteUserArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -98,6 +104,7 @@ export type Query = {
   apartments: PaginatedApartments;
   apartment?: Maybe<Apartment>;
   me?: Maybe<User>;
+  users: Array<User>;
 };
 
 
@@ -167,6 +174,13 @@ export type DeleteApartmentMutationVariables = Exact<{
 
 export type DeleteApartmentMutation = { __typename?: 'Mutation', deleteApartment: boolean };
 
+export type DeleteUserMutationVariables = Exact<{
+  id: Scalars['String'];
+}>;
+
+
+export type DeleteUserMutation = { __typename?: 'Mutation', deleteUser: boolean };
+
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
@@ -206,6 +220,11 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
+
+export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', createdAt: string, updatedAt: string, id: string, email: string, role: string }> };
 
 export const RegularApartmentFragmentDoc = gql`
     fragment RegularApartment on Apartment {
@@ -307,6 +326,15 @@ export const DeleteApartmentDocument = gql`
 export function useDeleteApartmentMutation() {
   return Urql.useMutation<DeleteApartmentMutation, DeleteApartmentMutationVariables>(DeleteApartmentDocument);
 };
+export const DeleteUserDocument = gql`
+    mutation DeleteUser($id: String!) {
+  deleteUser(id: $id)
+}
+    `;
+
+export function useDeleteUserMutation() {
+  return Urql.useMutation<DeleteUserMutation, DeleteUserMutationVariables>(DeleteUserDocument);
+};
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
   login(options: $options) {
@@ -384,4 +412,17 @@ export const MeDocument = gql`
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
+};
+export const UsersDocument = gql`
+    query Users {
+  users {
+    ...RegularUser
+    createdAt
+    updatedAt
+  }
+}
+    ${RegularUserFragmentDoc}`;
+
+export function useUsersQuery(options: Omit<Urql.UseQueryArgs<UsersQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<UsersQuery>({ query: UsersDocument, ...options });
 };

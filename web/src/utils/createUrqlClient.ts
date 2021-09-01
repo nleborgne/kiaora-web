@@ -8,6 +8,7 @@ import {
     RegisterMutation,
     DeleteApartmentMutationVariables,
     UpdateApartmentMutationVariables,
+    DeleteUserMutationVariables,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { pipe, tap } from "wonka";
@@ -124,6 +125,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 },
                 updates: {
                     Mutation: {
+                        deleteUser: (_result, args, cache, _info) => {
+                            cache.invalidate({
+                                __typename: "User",
+                                id: (args as DeleteUserMutationVariables).id,
+                            });
+                        },
                         updateApartment: (_result, args, cache, _info) => {
                             cache.invalidate({
                                 __typename: "Apartment",

@@ -10,8 +10,11 @@ import { Box, Button, FormLabel, Radio, Stack } from "@chakra-ui/react";
 import { useUpdateApartmentMutation } from "../../../generated/graphql";
 import { useGetApartmentFromUrl } from "../../../utils/useGetApartmentFromUrl";
 import { useRouter } from "next/router";
+import { useIsAuth } from "../../../utils/useIsAuth";
 
 export const EditApartment = ({}) => {
+    useIsAuth();
+
     const router = useRouter();
     const intId = useGetIntId();
     const [{ data, fetching }] = useGetApartmentFromUrl();

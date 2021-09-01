@@ -8,10 +8,11 @@ import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { Layout } from "../components/Layout";
 import { useIsAuth } from "../utils/useIsAuth";
+import { Role } from "../utils/roles";
 
 const CreateApartment: React.FC<{}> = ({}) => {
+    useIsAuth([Role.REALTOR, Role.ADMIN]);
     const router = useRouter();
-    useIsAuth();
     const [, createApartment] = useCreateApartmentMutation();
 
     return (
