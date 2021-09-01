@@ -72,7 +72,7 @@ export class UserResolver {
                 .values({
                     email: options.email,
                     password: hashedPassword,
-                    role: "CLIENT"
+                    role: "CLIENT",
                 })
                 .returning("*")
                 .execute();
