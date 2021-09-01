@@ -4,18 +4,18 @@ import {
     Arg,
     Ctx,
     Field,
-    FieldResolver,
     Mutation,
     ObjectType,
     Query,
     Resolver,
-    Root,
+    UseMiddleware,
 } from "type-graphql";
 import argon2 from "argon2";
 import { COOKIE_NAME } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { getConnection } from "typeorm";
+import { isAuth } from "../middleware/isAuth";
 
 @ObjectType()
 class UserResponse {
@@ -37,14 +37,6 @@ class FieldError {
 
 @Resolver(User)
 export class UserResolver {
-    @FieldResolver(() => String)
-    email(@Root() user: User, @Ctx() { req }: MyContext) {
-        if (req.session.userId === user.id) {
-            return user.email;
-        }
-        return "";
-    }
-
     @Query(() => User, { nullable: true })
     async me(@Ctx() { req }: MyContext) {
         // you are not logged in
@@ -53,6 +45,27 @@ export class UserResolver {
         }
         return User.findOne(req.session.userId);
     }
+
+    @Query(() => [User])
+    @UseMiddleware(isAuth)
+    async users() {
+        return await User.find();
+    }
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async deleteUser(
+        @Arg("id", () => String) id: string,
+        @Ctx() { req }: MyContext
+    ): Promise<boolean> {
+        const user = await User.findOne(req.session.userId);
+        if (user && (user.role === "REALTOR" || user.role === "ADMIN")) {
+            await User.delete(id);
+            return true;
+        }
+        return false;
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg("options") options: UsernamePasswordInput,
