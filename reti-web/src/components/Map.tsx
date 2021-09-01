@@ -19,13 +19,12 @@ const mapContainerStyle = {
     height: "100%",
 };
 
-
 export const Map: React.FC<MapProps> = ({ data }) => {
     const { state, update } = React.useContext(ctx);
 
     const [position, setPosition] = React.useState({
-        lat: 49,
-        lng: 2,
+        lat: 48.856614,
+        lng: 2.3522219,
     });
 
     const { isLoaded } = useJsApiLoader({
@@ -49,9 +48,12 @@ export const Map: React.FC<MapProps> = ({ data }) => {
 
     React.useEffect(() => {
         if (state.selectedApartment) {
-            setPosition({lat: state.selectedApartment.latitude,lng: state.selectedApartment.longitude})
+            setPosition({
+                lat: state.selectedApartment.latitude,
+                lng: state.selectedApartment.longitude,
+            });
         }
-    },[state])
+    }, [state]);
 
     if (!isLoaded) {
         return <div>Map loading...</div>;
@@ -65,7 +67,7 @@ export const Map: React.FC<MapProps> = ({ data }) => {
                 disableDefaultUI: true,
                 zoomControl: true,
             }}
-            zoom={2}
+            zoom={3}
             center={position}
             onLoad={onLoad}
             onUnmount={onUnmount}
@@ -86,7 +88,7 @@ export const Map: React.FC<MapProps> = ({ data }) => {
                         lat: state.selectedApartment.latitude,
                         lng: state.selectedApartment.longitude,
                     }}
-                    onCloseClick={() => update({selectedApartment: null})}
+                    onCloseClick={() => update({ selectedApartment: null })}
                 >
                     <Box>
                         <Heading fontSize="large">

@@ -1,0 +1,12 @@
+query Apartment($apartmentId: Int!) {
+    apartment(id: $apartmentId) {
+        name
+        description
+        floor
+        areaSize
+        price
+        numberOfRooms
+        address
+        isRented
+    }
+}

@@ -1,0 +1,12 @@
+mutation UpdateApartment($input: ApartmentInput!, $id: Float!) {
+    updateApartment(input: $input, id: $id) {
+        id
+        name
+        description
+        areaSize
+        price
+        numberOfRooms
+        address
+        isRented
+    }
+}

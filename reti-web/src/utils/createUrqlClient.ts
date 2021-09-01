@@ -1,16 +1,20 @@
 import { dedupExchange, fetchExchange, stringifyVariables } from "urql";
-import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver, Cache } from "@urql/exchange-graphcache";
 import {
     LogoutMutation,
     MeQuery,
     MeDocument,
     LoginMutation,
     RegisterMutation,
+    DeleteApartmentMutationVariables,
+    UpdateApartmentMutationVariables,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { pipe, tap } from "wonka";
 import { Exchange } from "urql";
 import Router from "next/router";
+import { devtoolsExchange } from "@urql/devtools";
+import { isServer } from "./isServer";
 
 export const errorExchange: Exchange =
     ({ forward }) =>
@@ -32,6 +36,7 @@ export const cursorPagination = (): Resolver => {
         const fieldInfos = allFields.filter(
             (info) => info.fieldName === fieldName
         );
+
         const size = fieldInfos.length;
         if (size === 0) {
             return undefined;
@@ -46,94 +51,144 @@ export const cursorPagination = (): Resolver => {
             cache.resolve(entityKey, fieldKey) as string,
             "apartments"
         );
-        info.partial = !isItInTheCache;
         let hasMore = true;
-        let results: string[] = [];
-        fieldInfos.forEach((fi) => {
-            const key = cache.resolve(entityKey, fi.fieldKey) as string;
-            const data = cache.resolve(key, "apartments") as string[];
-            const _hasMore = cache.resolve(key, "hasMore") as boolean;
-            if (!_hasMore) {
-                hasMore = _hasMore;
-            }
-            results.push(...data);
-        });
-        return { __typename: typename, hasMore, apartments: results };
+
+        if (
+            !Object.keys(fieldArgs).includes("numberOfRooms") &&
+            !Object.keys(fieldArgs).includes("price") &&
+            !Object.keys(fieldArgs).includes("areaSize")
+        ) {
+            info.partial = !isItInTheCache;
+            let results: string[] = [];
+            fieldInfos.forEach((fi) => {
+                const key = cache.resolve(entityKey, fi.fieldKey) as string;
+                const data = cache.resolve(key, "apartments") as string[];
+                const _hasMore = cache.resolve(key, "hasMore") as boolean;
+                if (!_hasMore) {
+                    hasMore = _hasMore;
+                }
+                results.push(...data);
+            });
+            return { __typename: typename, hasMore, apartments: results };
+        } else {
+            // Filter
+            let results: string[] = [];
+            fieldInfos.forEach((fi) => {
+                const key = cache.resolve(entityKey, fi.fieldKey) as string;
+                const data = cache.resolve(key, "apartments") as string[];
+                const _hasMore = cache.resolve(key, "hasMore") as boolean;
+                if (!_hasMore) {
+                    hasMore = _hasMore;
+                }
+                results = data;
+            });
+            return { __typename: typename, hasMore, apartments: results };
+        }
     };
 };
 
-export const createUrqlClient = (ssrExchange: any) => ({
-    url: "http://localhost:4000/graphql",
-    fetchOptions: {
-        credentials: "include" as const,
-    },
-    exchanges: [
-        dedupExchange,
-        cacheExchange({
-            keys: {
-                PaginatedApartments: () => null,
-            },
-            resolvers: {
-                Query: {
-                    apartments: cursorPagination(),
+function invalidateAllPosts(cache: Cache) {
+    const allFields = cache.inspectFields("Query");
+    const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+    fieldInfos.forEach((fi) => {
+        cache.invalidate("Query", "posts", fi.arguments || {});
+    });
+}
+
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+    let cookie = "";
+    if (isServer()) {
+        cookie = ctx?.req.headers.cookie;
+    }
+    return {
+        url: "http://localhost:4000/graphql",
+        fetchOptions: {
+            credentials: "include" as const,
+            headers: cookie
+                ? {
+                      cookie,
+                  }
+                : undefined,
+        },
+        exchanges: [
+            devtoolsExchange,
+            dedupExchange,
+            cacheExchange({
+                keys: {
+                    PaginatedApartments: () => null,
                 },
-            },
-            updates: {
-                Mutation: {
-                    createApartment: (_result, args, cache, info) => {
-                        cache.invalidate('Query', 'apartments', {
-                            limit: 15,
-                        });
-                    },
-                    logout: (_result, args, cache, info) => {
-                        // return null from me query
-                        betterUpdateQuery<LogoutMutation, MeQuery>(
-                            cache,
-                            { query: MeDocument },
-                            _result,
-                            () => ({ me: null })
-                        );
-                    },
-                    login: (_result, args, cache, info) => {
-                        cache.invalidate('Query', 'apartments', {
-                            limit: 15
-                        });
-                        betterUpdateQuery<LoginMutation, MeQuery>(
-                            cache,
-                            { query: MeDocument },
-                            _result,
-                            (result, query) => {
-                                if (result.login.errors) {
-                                    return query;
-                                } else {
-                                    return {
-                                        me: result.login.user,
-                                    };
-                                }
-                            }
-                        );
-                    },
-                    register: (_result, args, cache, info) => {
-                        betterUpdateQuery<RegisterMutation, MeQuery>(
-                            cache,
-                            { query: MeDocument },
-                            _result,
-                            (result, query) => {
-                                if (result.register.errors) {
-                                    return query;
-                                } else {
-                                    return {
-                                        me: result.register.user,
-                                    };
-                                }
-                            }
-                        );
+                resolvers: {
+                    Query: {
+                        apartments: cursorPagination(),
                     },
                 },
-            },
-        }),
-        errorExchange,
-        ssrExchange,
-        fetchExchange,
-    ],
-});
+                updates: {
+                    Mutation: {
+                        updateApartment: (_result, args, cache, _info) => {
+                            cache.invalidate({
+                                __typename: "Apartment",
+                                id: (args as UpdateApartmentMutationVariables)
+                                    .id,
+                            });
+                        },
+                        deleteApartment: (_result, args, cache, _info) => {
+                            cache.invalidate({
+                                __typename: "Apartment",
+                                id: (args as DeleteApartmentMutationVariables)
+                                    .id,
+                            });
+                        },
+                        createApartment: (_result, _args, cache, _info) => {
+                            invalidateAllPosts(cache);
+                        },
+                        logout: (_result, _args, cache, _info) => {
+                            // return null from me query
+                            betterUpdateQuery<LogoutMutation, MeQuery>(
+                                cache,
+                                { query: MeDocument },
+                                _result,
+                                () => ({ me: null })
+                            );
+                        },
+                        login: (_result, _args, cache, _info) => {
+                            betterUpdateQuery<LoginMutation, MeQuery>(
+                                cache,
+                                { query: MeDocument },
+                                _result,
+                                (result, query) => {
+                                    if (result.login.errors) {
+                                        return query;
+                                    } else {
+                                        return {
+                                            me: result.login.user,
+                                        };
+                                    }
+                                }
+                            );
+                            invalidateAllPosts(cache);
+                        },
+                        register: (_result, _args, cache, _info) => {
+                            betterUpdateQuery<RegisterMutation, MeQuery>(
+                                cache,
+                                { query: MeDocument },
+                                _result,
+                                (result, query) => {
+                                    if (result.register.errors) {
+                                        return query;
+                                    } else {
+                                        return {
+                                            me: result.register.user,
+                                        };
+                                    }
+                                }
+                            );
+                        },
+                    },
+                },
+            }),
+            errorExchange,
+            ssrExchange,
+            fetchExchange,
+        ],
+    };
+};

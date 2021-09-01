@@ -41,6 +41,7 @@ export type ApartmentInput = {
   price: Scalars['Float'];
   numberOfRooms: Scalars['Float'];
   address: Scalars['String'];
+  isRented?: Maybe<Scalars['Boolean']>;
 };
 
 export type FieldError = {
@@ -72,7 +73,7 @@ export type MutationUpdateApartmentArgs = {
 
 
 export type MutationDeleteApartmentArgs = {
-  id: Scalars['String'];
+  id: Scalars['Int'];
 };
 
 
@@ -101,13 +102,16 @@ export type Query = {
 
 
 export type QueryApartmentsArgs = {
+  numberOfRooms?: Maybe<Scalars['Int']>;
+  price?: Maybe<Scalars['Int']>;
+  areaSize?: Maybe<Scalars['Int']>;
   cursor?: Maybe<Scalars['String']>;
   limit: Scalars['Int'];
 };
 
 
 export type QueryApartmentArgs = {
-  id: Scalars['String'];
+  id: Scalars['Int'];
 };
 
 export type User = {
@@ -130,6 +134,8 @@ export type UsernamePasswordInput = {
   password: Scalars['String'];
 };
 
+export type RegularApartmentFragment = { __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number, latitude: number, longitude: number, realtorId: string, address: string, isRented: boolean, realtor: { __typename?: 'User', id: string, email: string, createdAt: string, updatedAt: string, role: string } };
+
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
 
 export type RegularUserFragment = { __typename?: 'User', id: string, email: string, role: string };
@@ -139,6 +145,9 @@ export type RegularUserReponseFragment = { __typename?: 'UserResponse', errors?:
 export type ApartmentsQueryVariables = Exact<{
   limit: Scalars['Int'];
   cursor?: Maybe<Scalars['String']>;
+  areaSize?: Maybe<Scalars['Int']>;
+  price?: Maybe<Scalars['Int']>;
+  numberOfRooms?: Maybe<Scalars['Int']>;
 }>;
 
 
@@ -150,6 +159,13 @@ export type CreateApartmentMutationVariables = Exact<{
 
 
 export type CreateApartmentMutation = { __typename?: 'Mutation', createApartment: { __typename?: 'Apartment', id: string, createdAt: string, updatedAt: string, name: string, description: string, floor: number, areaSize: number, numberOfRooms: number, price: number, latitude: number, longitude: number, address: string } };
+
+export type DeleteApartmentMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type DeleteApartmentMutation = { __typename?: 'Mutation', deleteApartment: boolean };
 
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
@@ -171,11 +187,51 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Maybe<Array<{ __typename?: 'FieldError', field: string, message: string }>>, user?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> } };
 
+export type UpdateApartmentMutationVariables = Exact<{
+  input: ApartmentInput;
+  id: Scalars['Float'];
+}>;
+
+
+export type UpdateApartmentMutation = { __typename?: 'Mutation', updateApartment?: Maybe<{ __typename?: 'Apartment', id: string, name: string, description: string, areaSize: number, price: number, numberOfRooms: number, address: string, isRented: boolean }> };
+
+export type ApartmentQueryVariables = Exact<{
+  apartmentId: Scalars['Int'];
+}>;
+
+
+export type ApartmentQuery = { __typename?: 'Query', apartment?: Maybe<{ __typename?: 'Apartment', name: string, description: string, floor: number, areaSize: number, price: number, numberOfRooms: number, address: string, isRented: boolean }> };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
 
+export const RegularApartmentFragmentDoc = gql`
+    fragment RegularApartment on Apartment {
+  id
+  createdAt
+  updatedAt
+  name
+  description
+  floor
+  areaSize
+  price
+  numberOfRooms
+  latitude
+  longitude
+  realtorId
+  address
+  isRented
+  realtor {
+    id
+    email
+    createdAt
+    updatedAt
+    role
+  }
+}
+    `;
 export const RegularErrorFragmentDoc = gql`
     fragment RegularError on FieldError {
   field
@@ -201,35 +257,21 @@ export const RegularUserReponseFragmentDoc = gql`
     ${RegularErrorFragmentDoc}
 ${RegularUserFragmentDoc}`;
 export const ApartmentsDocument = gql`
-    query Apartments($limit: Int!, $cursor: String) {
-  apartments(cursor: $cursor, limit: $limit) {
+    query Apartments($limit: Int!, $cursor: String, $areaSize: Int, $price: Int, $numberOfRooms: Int) {
+  apartments(
+    cursor: $cursor
+    limit: $limit
+    areaSize: $areaSize
+    price: $price
+    numberOfRooms: $numberOfRooms
+  ) {
     hasMore
     apartments {
-      id
-      createdAt
-      updatedAt
-      name
-      description
-      floor
-      areaSize
-      price
-      numberOfRooms
-      latitude
-      longitude
-      realtorId
-      address
-      isRented
-      realtor {
-        id
-        email
-        createdAt
-        updatedAt
-        role
-      }
+      ...RegularApartment
     }
   }
 }
-    `;
+    ${RegularApartmentFragmentDoc}`;
 
 export function useApartmentsQuery(options: Omit<Urql.UseQueryArgs<ApartmentsQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<ApartmentsQuery>({ query: ApartmentsDocument, ...options });
@@ -255,6 +297,15 @@ export const CreateApartmentDocument = gql`
 
 export function useCreateApartmentMutation() {
   return Urql.useMutation<CreateApartmentMutation, CreateApartmentMutationVariables>(CreateApartmentDocument);
+};
+export const DeleteApartmentDocument = gql`
+    mutation DeleteApartment($id: Int!) {
+  deleteApartment(id: $id)
+}
+    `;
+
+export function useDeleteApartmentMutation() {
+  return Urql.useMutation<DeleteApartmentMutation, DeleteApartmentMutationVariables>(DeleteApartmentDocument);
 };
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
@@ -286,6 +337,42 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const UpdateApartmentDocument = gql`
+    mutation UpdateApartment($input: ApartmentInput!, $id: Float!) {
+  updateApartment(input: $input, id: $id) {
+    id
+    name
+    description
+    areaSize
+    price
+    numberOfRooms
+    address
+    isRented
+  }
+}
+    `;
+
+export function useUpdateApartmentMutation() {
+  return Urql.useMutation<UpdateApartmentMutation, UpdateApartmentMutationVariables>(UpdateApartmentDocument);
+};
+export const ApartmentDocument = gql`
+    query Apartment($apartmentId: Int!) {
+  apartment(id: $apartmentId) {
+    name
+    description
+    floor
+    areaSize
+    price
+    numberOfRooms
+    address
+    isRented
+  }
+}
+    `;
+
+export function useApartmentQuery(options: Omit<Urql.UseQueryArgs<ApartmentQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<ApartmentQuery>({ query: ApartmentDocument, ...options });
 };
 export const MeDocument = gql`
     query Me {

@@ -1,4 +1,4 @@
-import { Box, Button, Flex, HStack, Link } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, HStack, Link } from "@chakra-ui/react";
 import React from "react";
 import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
@@ -28,17 +28,21 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         );
     } else {
         body = (
-            <Flex>
-                <Box float="left" pos="fixed" top={2} left={2}>
-                    <HStack>
-                        {[Role.REALTOR, Role.ADMIN].includes(data.me.role as Role) && (
-                            <Link href="create-apartment">
-                                <Button colorScheme="teal">+&nbsp;Add apartment</Button>
-                            </Link>
-                        )}
-                    </HStack>
-                </Box>
+            <Flex align="center">
+                <HStack mr={4}>
+                    {[Role.REALTOR, Role.ADMIN].includes(
+                        data.me.role as Role
+                    ) && (
+                        <Link
+                            href="create-apartment"
+                            style={{ textDecoration: "none" }}
+                        >
+                            <Button variant="blue">+&nbsp;Add apartment</Button>
+                        </Link>
+                    )}
+                </HStack>
                 <Box mr={2}>{data.me.email}</Box>
+
                 <Button
                     variant="link"
                     onClick={() => {
@@ -52,7 +56,19 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         );
     }
     return (
-        <Flex position="sticky" top="0" zIndex={1} bg="tan" p={4} ml="auto">
+        <Flex
+            position="sticky"
+            top="0"
+            zIndex={1}
+            p={4}
+            ml="auto"
+            bg="gray.100"
+        >
+            <NextLink href="/">
+                <Link>
+                    <Heading>kia ora</Heading>
+                </Link>
+            </NextLink>
             <Box ml="auto">{body}</Box>
         </Flex>
     );

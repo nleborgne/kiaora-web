@@ -1,34 +1,61 @@
 import React from "react";
-import { Box, Button } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
-import { InputField } from "../components/InputField";
-import { useCreateApartmentMutation } from "../generated/graphql";
-import { useRouter } from "next/router";
 import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
-import { Layout } from "../components/Layout";
-import { useIsAuth } from "../utils/useIsAuth";
+import { Layout } from "../../../components/Layout";
+import { RadioGroupControl } from "formik-chakra-ui";
+import { useGetIntId } from "../../../utils/useGetIntId";
+import { InputField } from "../../../components/InputField";
+import { createUrqlClient } from "../../../utils/createUrqlClient";
+import { Box, Button, FormLabel, Radio, Stack } from "@chakra-ui/react";
+import { useUpdateApartmentMutation } from "../../../generated/graphql";
+import { useGetApartmentFromUrl } from "../../../utils/useGetApartmentFromUrl";
+import { useRouter } from "next/router";
 
-const CreateApartment: React.FC<{}> = ({}) => {
+export const EditApartment = ({}) => {
     const router = useRouter();
-    useIsAuth();
-    const [, createApartment] = useCreateApartmentMutation();
+    const intId = useGetIntId();
+    const [{ data, fetching }] = useGetApartmentFromUrl();
+    const [, updateApartment] = useUpdateApartmentMutation();
+
+    if (fetching) {
+        return (
+            <Layout variant="small">
+                <div>loading...</div>
+            </Layout>
+        );
+    }
+    if (!data?.apartment) {
+        return (
+            <Layout variant="small">
+                <div>Could not find apartment</div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout variant="small">
             <Formik
                 initialValues={{
-                    name: "",
-                    description: "",
-                    floor: 0,
-                    areaSize: 0,
-                    price: 0,
-                    numberOfRooms: 0,
-                    address: "",
+                    name: data.apartment.name,
+                    description: data.apartment.description,
+                    floor: data.apartment.floor,
+                    areaSize: data.apartment.areaSize,
+                    price: data.apartment.price,
+                    numberOfRooms: data.apartment.numberOfRooms,
+                    address: data.apartment.address,
+                    isRented: data.apartment.isRented.toString(),
                 }}
                 onSubmit={async (values) => {
-                    const { error } = await createApartment({ input: values });
-                    if (!error) router.push("/");
+                    // const { error } = await createApartment({ input: values });
+                    // if (!error) router.push("/");
+                    await updateApartment({
+                        id: intId,
+                        input: {
+                            ...values,
+                            isRented: values.isRented === "true",
+                        },
+                    });
+                    router.push("/");
                 }}
             >
                 {({ isSubmitting }) => (
@@ -82,12 +109,20 @@ const CreateApartment: React.FC<{}> = ({}) => {
                             type="text"
                         />
                         <Box my={4} />
+                        <FormLabel>Is apartment rented?</FormLabel>
+                        <RadioGroupControl name="isRented">
+                            <Stack direction="row">
+                                <Radio value="true">Yes</Radio>
+                                <Radio value="false">No</Radio>
+                            </Stack>
+                        </RadioGroupControl>
+                        <Box my={4} />
                         <Button
                             type="submit"
                             variant="blue"
                             isLoading={isSubmitting}
                         >
-                            +&nbsp;Add apartment
+                            Update apartment
                         </Button>
                     </Form>
                 )}
@@ -96,4 +131,4 @@ const CreateApartment: React.FC<{}> = ({}) => {
     );
 };
 
-export default withUrqlClient(createUrqlClient)(CreateApartment);
+export default withUrqlClient(createUrqlClient)(EditApartment);

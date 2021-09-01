@@ -7,11 +7,17 @@ import { Box, HStack, Stack } from "@chakra-ui/react";
 import { LeftPanel } from "../components/LeftPanel";
 import { MiddlePanel } from "../components/MiddlePanel";
 import { RightPanel } from "../components/RightPanel";
+import { useIsAuth } from "../utils/useIsAuth";
 
 const Index = () => {
+    useIsAuth();
+
     const [variables, setVariables] = React.useState({
-        limit: 15,
+        limit: 100,
         cursor: null as null | string,
+        areaSize: null as null | number,
+        price: null as null | number,
+        numberOfRooms: null as null | number,
     });
     const [{ data, fetching }] = useApartmentsQuery({
         variables,
@@ -34,11 +40,15 @@ const Index = () => {
                                 fetching={fetching}
                                 onClick={() => {
                                     setVariables({
+                                        ...variables,
                                         limit: variables.limit,
                                         cursor: data!.apartments.apartments[
                                             data!.apartments.apartments.length -
                                                 1
                                         ].createdAt,
+                                        numberOfRooms: variables.numberOfRooms,
+                                        areaSize: variables.areaSize,
+                                        price: variables.price,
                                     });
                                 }}
                             />
@@ -47,7 +57,10 @@ const Index = () => {
                             <MiddlePanel data={data!} />
                         </Box>
                         <Box w="20vw" h="90vh">
-                            <RightPanel />
+                            <RightPanel
+                                variables={variables}
+                                setVariables={setVariables}
+                            />
                         </Box>
                     </HStack>
                 </>

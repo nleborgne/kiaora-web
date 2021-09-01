@@ -1,0 +1,23 @@
+fragment RegularApartment on Apartment {
+    id
+    createdAt
+    updatedAt
+    name
+    description
+    floor
+    areaSize
+    price
+    numberOfRooms
+    latitude
+    longitude
+    realtorId
+    address
+    isRented
+    realtor {
+        id
+        email
+        createdAt
+        updatedAt
+        role
+    }
+}

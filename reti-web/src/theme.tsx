@@ -14,6 +14,20 @@ const theme = extendTheme({
     colors: {
         black: "#16161D",
     },
+    components: {
+        Button: {
+            variants: {
+                blue: {
+                    bg: "#48cae4",
+                    _hover: {
+                        bg: "#90e0ef",
+                        color: "white",
+                    },
+                    color: "white",
+                },
+            },
+        },
+    },
     fonts,
     breakpoints,
     icons: {
