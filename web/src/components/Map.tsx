@@ -9,6 +9,7 @@ import mapStyles from "../utils/mapStyles";
 import { Apartment, ApartmentsQuery } from "../generated/graphql";
 import { Box, Heading } from "@chakra-ui/react";
 import { ctx } from "../pages/_app";
+import ApartmentIcon from "../../public/apartment.png";
 
 interface MapProps {
     data: ApartmentsQuery;
@@ -80,6 +81,12 @@ export const Map: React.FC<MapProps> = ({ data }) => {
                         lng: apartment.longitude,
                     }}
                     onClick={() => onMarkerClick(apartment)}
+                    icon={{
+                        url: ApartmentIcon.src,
+                        origin: new window.google.maps.Point(0, 0),
+                        anchor: new window.google.maps.Point(15, 15),
+                        scaledSize: new window.google.maps.Size(30, 30),
+                    }}
                 ></Marker>
             ))}
             {state.selectedApartment && state.selectedApartment.id !== "" && (

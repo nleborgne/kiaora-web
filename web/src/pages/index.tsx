@@ -31,7 +31,7 @@ const Index = () => {
             ) : (
                 <>
                     <HStack>
-                        <Stack w="20vw" h="90vh">
+                        <Stack w="25vw" h="90vh">
                             <LeftPanel
                                 aptData={data!}
                                 fetching={fetching}
@@ -53,7 +53,7 @@ const Index = () => {
                         <Box w="60vw" h="90vh">
                             <MiddlePanel data={data!} />
                         </Box>
-                        <Box w="20vw" h="90vh">
+                        <Box w="25vw" h="90vh">
                             <RightPanel
                                 variables={variables}
                                 setVariables={setVariables}
