@@ -56,6 +56,7 @@ export type Mutation = {
   updateApartment?: Maybe<Apartment>;
   deleteApartment: Scalars['Boolean'];
   deleteUser: Scalars['Boolean'];
+  updateUser?: Maybe<User>;
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
@@ -83,6 +84,12 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationUpdateUserArgs = {
+  input: UpdateUserInput;
+  id: Scalars['String'];
+};
+
+
 export type MutationRegisterArgs = {
   options: UsernamePasswordInput;
 };
@@ -105,6 +112,7 @@ export type Query = {
   apartment?: Maybe<Apartment>;
   me?: Maybe<User>;
   users: Array<User>;
+  user?: Maybe<User>;
 };
 
 
@@ -119,6 +127,16 @@ export type QueryApartmentsArgs = {
 
 export type QueryApartmentArgs = {
   id: Scalars['Int'];
+};
+
+
+export type QueryUserArgs = {
+  id: Scalars['String'];
+};
+
+export type UpdateUserInput = {
+  email: Scalars['String'];
+  role: Scalars['String'];
 };
 
 export type User = {
@@ -209,6 +227,14 @@ export type UpdateApartmentMutationVariables = Exact<{
 
 export type UpdateApartmentMutation = { __typename?: 'Mutation', updateApartment?: Maybe<{ __typename?: 'Apartment', id: string, name: string, description: string, areaSize: number, price: number, numberOfRooms: number, address: string, isRented: boolean }> };
 
+export type UpdateUserMutationVariables = Exact<{
+  input: UpdateUserInput;
+  id: Scalars['String'];
+}>;
+
+
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
+
 export type ApartmentQueryVariables = Exact<{
   apartmentId: Scalars['Int'];
 }>;
@@ -220,6 +246,13 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: Maybe<{ __typename?: 'User', id: string, email: string, role: string }> };
+
+export type UserQueryVariables = Exact<{
+  userId: Scalars['String'];
+}>;
+
+
+export type UserQuery = { __typename?: 'Query', user?: Maybe<{ __typename?: 'User', id: string, email: string, role: string, createdAt: string, updatedAt: string }> };
 
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -384,6 +417,19 @@ export const UpdateApartmentDocument = gql`
 export function useUpdateApartmentMutation() {
   return Urql.useMutation<UpdateApartmentMutation, UpdateApartmentMutationVariables>(UpdateApartmentDocument);
 };
+export const UpdateUserDocument = gql`
+    mutation UpdateUser($input: UpdateUserInput!, $id: String!) {
+  updateUser(input: $input, id: $id) {
+    id
+    email
+    role
+  }
+}
+    `;
+
+export function useUpdateUserMutation() {
+  return Urql.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument);
+};
 export const ApartmentDocument = gql`
     query Apartment($apartmentId: Int!) {
   apartment(id: $apartmentId) {
@@ -412,6 +458,21 @@ export const MeDocument = gql`
 
 export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
   return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
+};
+export const UserDocument = gql`
+    query User($userId: String!) {
+  user(id: $userId) {
+    id
+    email
+    role
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+export function useUserQuery(options: Omit<Urql.UseQueryArgs<UserQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<UserQuery>({ query: UserDocument, ...options });
 };
 export const UsersDocument = gql`
     query Users {

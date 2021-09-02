@@ -30,6 +30,11 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         body = (
             <Flex align="center">
                 <HStack mr={4}>
+                    {Role.ADMIN === (data.me.role as Role) && (
+                        <Link href="user" style={{ textDecoration: "none" }}>
+                            <Button variant="blue">Users</Button>
+                        </Link>
+                    )}
                     {[Role.REALTOR, Role.ADMIN].includes(
                         data.me.role as Role
                     ) && (

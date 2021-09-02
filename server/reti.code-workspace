@@ -1,11 +1,11 @@
 {
     "folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../reti-web"
-		}
-	],
+        {
+            "path": "."
+        },
+        {
+            "path": "../web"
+        }
+    ],
     "settings": {}
 }

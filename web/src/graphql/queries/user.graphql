@@ -1,6 +1,8 @@
-query Users {
-    users {
-        ...RegularUser
+query User($userId: String!) {
+    user(id: $userId) {
+        id
+        email
+        role
         createdAt
         updatedAt
     }

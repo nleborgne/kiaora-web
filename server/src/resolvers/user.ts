@@ -12,7 +12,10 @@ import {
 } from "type-graphql";
 import argon2 from "argon2";
 import { COOKIE_NAME } from "../constants";
-import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import {
+    UpdateUserInput,
+    UsernamePasswordInput,
+} from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { getConnection } from "typeorm";
 import { isAuth } from "../middleware/isAuth";
@@ -52,6 +55,11 @@ export class UserResolver {
         return await User.find();
     }
 
+    @Query(() => User, { nullable: true })
+    user(@Arg("id", () => String!) id: string): Promise<User | undefined> {
+        return User.findOne(id);
+    }
+
     @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
     async deleteUser(
@@ -64,6 +72,29 @@ export class UserResolver {
             return true;
         }
         return false;
+    }
+
+    @Mutation(() => User, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updateUser(
+        @Arg("id", () => String) id: string,
+        @Arg("input") input: UpdateUserInput,
+        @Ctx() { req }: MyContext
+    ): Promise<User | null> {
+        const user = await User.findOne(req.session.userId);
+        console.log(input);
+        if (user && user.role === "ADMIN") {
+            const userToUpdate = await getConnection()
+                .createQueryBuilder()
+                .update(User)
+                .set({ ...input })
+                .where("id = :id", { id })
+                .returning("*")
+                .execute();
+
+            return userToUpdate.raw[0];
+        }
+        return null;
     }
 
     @Mutation(() => UserResponse)

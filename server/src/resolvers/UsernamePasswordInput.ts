@@ -7,3 +7,11 @@ export class UsernamePasswordInput {
     @Field()
     password: string;
 }
+
+@InputType()
+export class UpdateUserInput {
+    @Field()
+    email: string;
+    @Field()
+    role: string;
+}

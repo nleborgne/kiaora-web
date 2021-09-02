@@ -9,12 +9,13 @@ import { useRouter } from "next/router";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import Link from "next/link";
+import { Layout } from "../components/Layout";
 
 const Login: React.FC<{}> = ({}) => {
     const router = useRouter();
     const [, login] = useLoginMutation();
     return (
-        <Wrapper variant="small">
+        <Layout variant="small">
             <Formik
                 initialValues={{ email: "", password: "" }}
                 onSubmit={async (values, { setErrors }) => {
@@ -60,7 +61,7 @@ const Login: React.FC<{}> = ({}) => {
                     </Form>
                 )}
             </Formik>
-        </Wrapper>
+        </Layout>
     );
 };
 

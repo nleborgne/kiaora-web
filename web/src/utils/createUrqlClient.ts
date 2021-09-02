@@ -156,6 +156,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                                 _result,
                                 () => ({ me: null })
                             );
+                            Router.replace("/login");
                         },
                         login: (_result, _args, cache, _info) => {
                             betterUpdateQuery<LoginMutation, MeQuery>(

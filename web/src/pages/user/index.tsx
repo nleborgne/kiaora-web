@@ -7,10 +7,9 @@ import { Layout } from "../../components/Layout";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { useIsAuth } from "../../utils/useIsAuth";
 import { Role } from "../../utils/roles";
+import NextLink from "next/link";
 
-interface indexProps {}
-
-const Index: React.FC<indexProps> = ({}) => {
+const Index: React.FC<{}> = ({}) => {
     useIsAuth([Role.ADMIN]);
 
     const [{ data, fetching }] = useUsersQuery();
@@ -31,10 +30,15 @@ const Index: React.FC<indexProps> = ({}) => {
                             <Td>{user.email}</Td>
                             <Td>{user.role}</Td>
                             <Td>
-                                <IconButton
-                                    icon={<EditIcon />}
-                                    aria-label="Edit user"
-                                />
+                                <NextLink
+                                    href="/user/edit/[id]"
+                                    as={`/user/edit/${user.id}`}
+                                >
+                                    <IconButton
+                                        icon={<EditIcon />}
+                                        aria-label="Edit user"
+                                    />
+                                </NextLink>
                                 <IconButton
                                     ml={4}
                                     icon={<DeleteIcon />}

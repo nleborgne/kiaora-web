@@ -7,11 +7,8 @@ import { Box, HStack, Stack } from "@chakra-ui/react";
 import { LeftPanel } from "../components/LeftPanel";
 import { MiddlePanel } from "../components/MiddlePanel";
 import { RightPanel } from "../components/RightPanel";
-import { useIsAuth } from "../utils/useIsAuth";
 
 const Index = () => {
-    useIsAuth();
-
     const [variables, setVariables] = React.useState({
         limit: 100,
         cursor: null as null | string,
@@ -24,7 +21,7 @@ const Index = () => {
     });
 
     if (!fetching && !data) {
-        return <div>No apartments added</div>;
+        return null;
     }
 
     return (

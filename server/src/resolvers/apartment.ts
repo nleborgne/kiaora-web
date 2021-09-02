@@ -49,6 +49,7 @@ class PaginatedApartments {
 
 @Resolver()
 export class ApartmentResolver {
+    @UseMiddleware(isAuth)
     @Query(() => PaginatedApartments)
     async apartments(
         @Arg("limit", () => Int) limit: number,
