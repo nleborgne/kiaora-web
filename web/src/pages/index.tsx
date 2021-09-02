@@ -30,8 +30,8 @@ const Index = () => {
                 <div>loading...</div>
             ) : (
                 <>
-                    <HStack>
-                        <Stack w="25vw" h="90vh">
+                    <HStack h="85vh">
+                        <Stack w="25vw" h="85vh">
                             <LeftPanel
                                 aptData={data!}
                                 fetching={fetching}
@@ -50,10 +50,10 @@ const Index = () => {
                                 }}
                             />
                         </Stack>
-                        <Box w="60vw" h="90vh">
+                        <Box w="60vw" h="85vh">
                             <MiddlePanel data={data!} />
                         </Box>
-                        <Box w="25vw" h="90vh">
+                        <Box w="25vw" h="85vh">
                             <RightPanel
                                 variables={variables}
                                 setVariables={setVariables}
