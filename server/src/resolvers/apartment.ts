@@ -153,15 +153,20 @@ export class ApartmentResolver {
     ): Promise<Apartment> {
         Geocode.setApiKey(process.env.GOOGLE_KEY);
         Geocode.enableDebug();
-        const code = await Geocode.fromAddress(input.address);
-        const { lat, lng } = code.results[0].geometry.location;
-        return Apartment.create({
-            ...input,
-            latitude: lat,
-            longitude: lng,
-            isRented: false,
-            realtorId: req.session.userId,
-        }).save();
+
+        try {
+            const code = await Geocode.fromAddress(input.address);
+            const { lat, lng } = code.results[0].geometry.location;
+            return Apartment.create({
+                ...input,
+                latitude: lat,
+                longitude: lng,
+                isRented: false,
+                realtorId: req.session.userId,
+            }).save();
+        } catch {
+            return Promise.reject(new Error("Invalid address"));
+        }
     }
 
     @Mutation(() => Apartment, { nullable: true })

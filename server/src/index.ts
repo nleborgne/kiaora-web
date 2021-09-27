@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "dotenv-safe/config";
 import express from "express";
 import { buildSchema } from "type-graphql";
 import { ApolloServer } from "apollo-server-express";
@@ -19,11 +20,9 @@ import path from "path";
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "reti",
-        username: "postgres",
-        password: "postgres",
+        url: process.env.DATABASE_URL,
         logging: true,
-        synchronize: true,
+        // synchronize: true,
         entities: [User, Apartment],
         migrations: [path.join(__dirname, "./migrations/*")],
         cli: {
@@ -36,15 +35,16 @@ const main = async () => {
 
     const app = express();
 
+    app.set("proxy", 1);
     app.use(
         cors({
-            origin: "http://localhost:3000",
+            origin: process.env.CORS_ORIGIN,
             credentials: true,
         })
     );
 
     let RedisStore = connectRedis(session);
-    let redis = new Redis();
+    let redis = new Redis(process.env.REDIS_URL);
 
     app.use(
         session({
@@ -58,9 +58,10 @@ const main = async () => {
                 httpOnly: true,
                 sameSite: "lax", // csrf
                 secure: __prod__, // cookie only works in https (prod env)
+                domain: __prod__ ? "*.builtbynlb.com" : undefined,
             },
             saveUninitialized: false,
-            secret: "qsdqsdqsdqsdqsqsqsdsqd",
+            secret: process.env.SESSION_SECRET,
             resave: false,
         })
     );
@@ -84,7 +85,7 @@ const main = async () => {
         res.send("hello");
     });
 
-    app.listen(4000, () => {
+    app.listen(parseInt(process.env.PORT), () => {
         console.log("Server started on localhost:4000");
     });
 };

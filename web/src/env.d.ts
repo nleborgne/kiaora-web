@@ -1,5 +1,6 @@
 declare namespace NodeJS {
-    interface ProcessEnv {
-        REACT_APP_GOOGLE_KEY: string;
-    }
+  interface ProcessEnv {
+    NEXT_PUBLIC_GOOGLE_KEY: string;
+    NEXT_PUBLIC_API_URL: string;
+  }
 }

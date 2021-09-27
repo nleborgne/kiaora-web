@@ -12,7 +12,7 @@ import NextLink from "next/link";
 const Index: React.FC<{}> = ({}) => {
     useIsAuth([Role.ADMIN]);
 
-    const [{ data, fetching }] = useUsersQuery();
+    const [{ data }] = useUsersQuery();
     const [, deleteUser] = useDeleteUserMutation();
     return (
         <Layout variant="medium">

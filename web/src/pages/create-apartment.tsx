@@ -59,6 +59,7 @@ const CreateApartment: React.FC<{}> = ({}) => {
                             placeholder="90"
                             label="Area size (square meters)"
                             type="number"
+                            min={0}
                         />
                         <Box my={4} />
                         <InputField
