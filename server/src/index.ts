@@ -35,7 +35,7 @@ const main = async () => {
 
     const app = express();
 
-    app.set("proxy", 1);
+    app.set("trust proxy", 1);
     app.use(
         cors({
             origin: process.env.CORS_ORIGIN,
@@ -58,7 +58,7 @@ const main = async () => {
                 httpOnly: true,
                 sameSite: "lax", // csrf
                 secure: __prod__, // cookie only works in https (prod env)
-                domain: __prod__ ? "*.builtbynlb.com" : undefined,
+                domain: __prod__ ? ".builtbynlb.com" : undefined,
             },
             saveUninitialized: false,
             secret: process.env.SESSION_SECRET,
